@@ -11,7 +11,7 @@ AccessModifierOffset: 0
 IncludeCategories:
   - Regex:           '^"'
     Priority:        10
-  - Regex:           '(mruby|apt-pkg)/.*\.h'
+  - Regex:           '<(mruby|apt-pkg)'
     Priority:        30
   - Regex:           '\.h'
     Priority:        100
