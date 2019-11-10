@@ -5,6 +5,4 @@ MRuby::Gem::Specification.new('mitamae-apt') do |spec|
   spec.version = '0.1.0'
 
   spec.linker.libraries << 'apt-pkg'
-
-  spec.add_dependency 'mruby-io'
 end
