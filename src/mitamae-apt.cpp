@@ -89,7 +89,13 @@ static mrb_value mrb_apt_pkg_installed_version(mrb_state *mrb, mrb_value self)
       return mrb_nil_value();
    }
 
-   return mrb_str_new_cstr(mrb, pkg.CurrentVer().VerStr());
+   auto version = pkg.CurrentVer();
+   if(!version)
+   {
+      return mrb_nil_value();
+   }
+
+   return mrb_str_new_cstr(mrb, version.VerStr());
 }
 
 extern "C"
