@@ -6,6 +6,14 @@
 #include <apt-pkg/versionmatch.h>
 #include <mruby.h>
 
+#include <time.h>
+#include <sys/stat.h>
+
+#include <memory>
+
+std::shared_ptr<pkgCacheFile> cache_file;
+time_t cache_timestamp;
+
 static std::tuple<std::string, std::string> const parse_package_name(std::string const &name)
 {
    auto const colon = name.find(':');
@@ -18,6 +26,22 @@ static std::tuple<std::string, std::string> const parse_package_name(std::string
    return std::make_tuple(name.substr(0, colon), name.substr(colon + 1));
 }
 
+pkgCache *get_pkg_cache() {
+  std::string const cache_path = _config->FindFile("Dir::Cache::pkgcache");
+
+  struct stat statbuf;
+  if(stat(cache_path.c_str(), &statbuf) != 0) {  // TODO: fetch path from _config
+    return 0;
+  }
+
+  if(!cache_file || cache_timestamp < statbuf.st_mtime) {
+    cache_file = std::make_shared<pkgCacheFile>();
+    cache_timestamp = statbuf.st_mtime;
+  }
+
+  return cache_file->GetPkgCache();
+}
+
 static mrb_value mrb_apt_pkg_installed_p(mrb_state *mrb, mrb_value self)
 {
    char *pname, *pversion;
@@ -25,8 +49,7 @@ static mrb_value mrb_apt_pkg_installed_p(mrb_state *mrb, mrb_value self)
    if (argc < 2)
       pversion = 0;
 
-   pkgCacheFile cache_file;
-   auto cache = cache_file.GetPkgCache();
+   auto cache = get_pkg_cache();
 
    auto const pkg_name = parse_package_name(pname);
    auto pkg = cache->FindPkg(std::get<0>(pkg_name), std::get<1>(pkg_name));
@@ -56,8 +79,7 @@ static mrb_value mrb_apt_pkg_installed_version(mrb_state *mrb, mrb_value self)
    char *pname;
    mrb_get_args(mrb, "z", &pname);
 
-   pkgCacheFile cache_file;
-   pkgCache *cache = cache_file.GetPkgCache();
+   auto cache = get_pkg_cache();
 
    auto const pkg_name = parse_package_name(pname);
    auto pkg = cache->FindPkg(std::get<0>(pkg_name), std::get<1>(pkg_name));
