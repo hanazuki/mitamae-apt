@@ -1,0 +1,19 @@
+Language: Cpp
+# BasedOnStyle
+
+TabWidth:          8
+UseTab:            Always
+IndentWidth:       3
+ContinuationIndentWidth: 3
+ColumnLimit:       0
+BreakBeforeBraces: Allman
+AccessModifierOffset: 0
+IncludeCategories:
+  - Regex:           '^"'
+    Priority:        10
+  - Regex:           '(mruby|apt-pkg)/.*\.h'
+    Priority:        30
+  - Regex:           '\.h'
+    Priority:        100
+  - Regex:           '.*'
+    Priority:        99
