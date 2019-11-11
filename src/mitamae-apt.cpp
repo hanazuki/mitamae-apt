@@ -7,7 +7,6 @@
 #include <mruby.h>
 #include <memory>
 #include <sys/stat.h>
-#include <time.h>
 
 static std::shared_ptr<pkgCacheFile> cache_file;
 static time_t cache_timestamp;
@@ -18,10 +17,10 @@ static std::tuple<std::string, std::string> const parse_package_name(std::string
 
    if (colon == std::string::npos)
    {
-      return std::make_tuple(name, "native");
+      return {name, "native"};
    }
 
-   return std::make_tuple(name.substr(0, colon), name.substr(colon + 1));
+   return {name.substr(0, colon), name.substr(colon + 1)};
 }
 
 static std::shared_ptr<pkgCache> get_pkg_cache()
@@ -45,15 +44,17 @@ static std::shared_ptr<pkgCache> get_pkg_cache()
 
 static mrb_value mrb_apt_pkg_installed_p(mrb_state *mrb, mrb_value self)
 {
-   char *pname, *pversion;
-   int argc = mrb_get_args(mrb, "z|z!", &pname, &pversion);
+   char const *pname, *pversion;
+   auto const argc = mrb_get_args(mrb, "z|z!", &pname, &pversion);
    if (argc < 2)
-      pversion = 0;
+   {
+      pversion = nullptr;
+   }
 
-   auto cache = get_pkg_cache();
+   auto const cache = get_pkg_cache();
 
    auto const pkg_name = parse_package_name(pname);
-   auto pkg = cache->FindPkg(std::get<0>(pkg_name), std::get<1>(pkg_name));
+   auto const pkg = cache->FindPkg(std::get<0>(pkg_name), std::get<1>(pkg_name));
    if (pkg == cache->PkgEnd())
    {
       return mrb_false_value();
@@ -77,19 +78,19 @@ static mrb_value mrb_apt_pkg_installed_p(mrb_state *mrb, mrb_value self)
 
 static mrb_value mrb_apt_pkg_installed_version(mrb_state *mrb, mrb_value self)
 {
-   char *pname;
+   char const *pname;
    mrb_get_args(mrb, "z", &pname);
 
-   auto cache = get_pkg_cache();
+   auto const cache = get_pkg_cache();
 
    auto const pkg_name = parse_package_name(pname);
-   auto pkg = cache->FindPkg(std::get<0>(pkg_name), std::get<1>(pkg_name));
+   auto const pkg = cache->FindPkg(std::get<0>(pkg_name), std::get<1>(pkg_name));
    if (pkg == cache->PkgEnd())
    {
       return mrb_nil_value();
    }
 
-   auto version = pkg.CurrentVer();
+   auto const version = pkg.CurrentVer();
    if (!version)
    {
       return mrb_nil_value();
@@ -105,7 +106,7 @@ extern "C"
       pkgInitConfig(*_config);
       pkgInitSystem(*_config, _system);
 
-      struct RClass *mod_apt_pkg = mrb_define_module(mrb, "AptPkg");
+      struct RClass *const mod_apt_pkg = mrb_define_module(mrb, "AptPkg");
       mrb_define_singleton_method(mrb, reinterpret_cast<RObject *>(mod_apt_pkg),
 				  "installed?", mrb_apt_pkg_installed_p, MRB_ARGS_ARG(1, 1));
       mrb_define_singleton_method(mrb, reinterpret_cast<RObject *>(mod_apt_pkg),
