@@ -24,14 +24,14 @@ static std::tuple<std::string, std::string> const parse_package_name(std::string
    return std::make_tuple(name.substr(0, colon), name.substr(colon + 1));
 }
 
-pkgCache *get_pkg_cache()
+static std::shared_ptr<pkgCache> get_pkg_cache()
 {
-   std::string const cache_path = _config->FindFile("Dir::Cache::pkgcache");
+   static std::string const cache_path = _config->FindFile("Dir::Cache::pkgcache");
 
    struct stat statbuf;
    if (stat(cache_path.c_str(), &statbuf) != 0)
-   { // TODO: fetch path from _config
-      return 0;
+   {
+      return nullptr;
    }
 
    if (!cache_file || cache_timestamp < statbuf.st_mtime)
@@ -40,7 +40,7 @@ pkgCache *get_pkg_cache()
       cache_timestamp = statbuf.st_mtime;
    }
 
-   return cache_file->GetPkgCache();
+   return {cache_file, cache_file->GetPkgCache()};
 }
 
 static mrb_value mrb_apt_pkg_installed_p(mrb_state *mrb, mrb_value self)
