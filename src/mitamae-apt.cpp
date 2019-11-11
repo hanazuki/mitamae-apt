@@ -9,8 +9,8 @@
 #include <sys/stat.h>
 #include <time.h>
 
-std::shared_ptr<pkgCacheFile> cache_file;
-time_t cache_timestamp;
+static std::shared_ptr<pkgCacheFile> cache_file;
+static time_t cache_timestamp;
 
 static std::tuple<std::string, std::string> const parse_package_name(std::string const &name)
 {
@@ -90,7 +90,7 @@ static mrb_value mrb_apt_pkg_installed_version(mrb_state *mrb, mrb_value self)
    }
 
    auto version = pkg.CurrentVer();
-   if(!version)
+   if (!version)
    {
       return mrb_nil_value();
    }
