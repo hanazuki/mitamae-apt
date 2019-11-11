@@ -8,9 +8,6 @@
 #include <memory>
 #include <sys/stat.h>
 
-static std::shared_ptr<pkgCacheFile> cache_file;
-static time_t cache_timestamp;
-
 static std::tuple<std::string, std::string> const parse_package_name(std::string const &name)
 {
    auto const colon = name.find(':');
@@ -26,6 +23,8 @@ static std::tuple<std::string, std::string> const parse_package_name(std::string
 static std::shared_ptr<pkgCache> get_pkg_cache()
 {
    static std::string const cache_path = _config->FindFile("Dir::Cache::pkgcache");
+   static std::shared_ptr<pkgCacheFile> cache_file;
+   static time_t cache_timestamp;
 
    struct stat statbuf;
    if (stat(cache_path.c_str(), &statbuf) != 0)
